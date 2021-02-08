@@ -7,41 +7,67 @@
 
 import UIKit
 
+/*画像URLから取得*/
+
+extension UIImage {
+    public convenience init(url: String) {
+        let url = URL(string: url)
+        do {
+            let data = try Data(contentsOf: url!)
+        self.init(data: data)!
+        return
+        } catch let err {
+        print("Error : \(err.localizedDescription)")
+        }
+        self.init()
+    }
+}
+
 class ItemViewController: UIViewController,UITableViewDataSource,UITableViewDelegate {
    
-    override var shouldAutorotate: Bool {
-        return false
-    }
+    @IBOutlet weak var item_table: UITableView!
+    var items: Array<String> = []
+    var prices: Array<Int> = []
+    var stock: Array<Int> = []
+    var imgUrl = "https://yukiabineko.sakura.ne.jp/react/"
+    
+    
+    
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .portrait
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        if (item_data.count == 0 ) {
+            item_table.isHidden = true
+            let lb = UILabel(frame: CGRect(x: self.view.frame.size
+                                            .width/3.5, y: self.view.frame.size.height/2, width: self.view.frame.size.width, height: 100))
+            lb.text = "データが表示できません"
+            self.view.addSubview(lb)
+        }
+       
     }
+   
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        return item_data.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let itemData = item_data[indexPath.row] as! [String:Any]
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "itemcell", for: indexPath) as! ItemTableViewCell
+        let name = itemData["name"] as! String
+        /*日本語変換*/
+        let encodeUrlString: String = name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        
+        
         cell.setStatus(
-            image: UIImage(named: "aji")!,
-            name: items[indexPath.row],
-            price: prices[indexPath.row])
+            image: UIImage(url: imgUrl + encodeUrlString + ".jpg"),
+            name: name,
+            price: itemData["price"] as! Int
+         )
         cell.order.tag = indexPath.row
         cell.order.addTarget(self, action: #selector(new_page_access(_:)), for: .touchUpInside)
         return cell
-    }
-    
-    let items = ["あじ", "さんま", "さば"]
-    let prices = ["100", "99", "380"]
-    let images = [
-       UIImage(named: "aji"),
-       UIImage(named: "saba"),
-       UIImage(named: "sn")
-    ]
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-       
     }
     @objc func new_page_access(_ sender: UIButton){
         let id = sender.tag
